@@ -305,6 +305,7 @@ v0.0.1에서 지원하는 component type은 다음과 같다.
 | Component type |      크기 | 의미                             |
 | -------------- | ------: | ------------------------------ |
 | `F32`          | 4 bytes | IEEE 754 32-bit floating-point |
+| `I32`          | 4 bytes | signed 32-bit integer        |
 | `U32`          | 4 bytes | unsigned 32-bit integer        |
 
 ### 필수 메쉬 데이터
@@ -378,8 +379,6 @@ EDGE   → element_counts.edges
 FACE   → element_counts.faces
 CORNER → element_counts.corners
 ```
-
-v0.0.1의 일반 attribute는 `F32` 또는 `U32` component로 구성된 고정 길이 numeric element만 지원한다.
 
 ---
 
@@ -527,7 +526,7 @@ v0.0.1의 일반 attribute는 `F32` 또는 `U32` component로 구성된 고정 �
 
 - `name`은 같은 mesh 안의 다른 일반 attribute 이름과 중복되어서는 안 된다.
 - `domain`은 `POINT`, `EDGE`, `FACE`, `CORNER` 중 하나여야 한다.
-- `component_type`은 `F32` 또는 `U32`여야 한다.
+- `component_type`은 `F32` 또는 `U32` 혹은 `I32`여야 한다.
 - `component_count`는 1 이상이어야 한다.
 - `element_count`는 domain에 따라 다음 값과 같아야 한다.
 
