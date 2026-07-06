@@ -1,4 +1,4 @@
-# MATTR 포맷 명세(v0.0.1)
+# MATTR 포맷 명세(v0.1.0)
 
 > - 포맷명: MATTR
 > - 정식 명칭: Mesh Attribute & Topology Transfer Representation
@@ -145,7 +145,7 @@ Blender의 Default Cube의 저장 예시이다.
     // 포맷 기본 정보
     "header": {
         "format": "MATTR",
-        "version": "0.0.1"
+        "version": "0.1.0"
     },
 
     "buffer": {
@@ -271,11 +271,11 @@ Blender `Mesh`의 배열 중심 구조를 따라 SoA 방식으로 저장하며, 
 
 ### 후기 파일 구조
 
-통합형 파일(.mattr)은 v0.0.1의 지원 범위에 포함되지 않는다.
+통합형 파일(.mattr)은 v0.1.0의 지원 범위에 포함되지 않는다.
 JSON과 Binary를 하나의 파일에 저장하는 chunk 기반 컨테이너 구조는
 향후 버전에서 별도로 정의한다 (9절 참조).
 
-v0.0.1은 분리형 파일 구조(model.mattr.json + model.mattr.bin)만 지원한다.
+v0.1.0은 분리형 파일 구조(model.mattr.json + model.mattr.bin)만 지원한다.
 
 ---
 
@@ -300,7 +300,7 @@ byte_length
 × element_count
 ````
 
-v0.0.1에서 지원하는 component type은 다음과 같다.
+v0.1.0에서 지원하는 component type은 다음과 같다.
 
 | Component type |      크기 | 의미                             |
 | -------------- | ------: | ------------------------------ |
@@ -494,7 +494,7 @@ CORNER → element_counts.corners
     face_offsets[element_counts.faces] == element_counts.corners
     ```
 
-- v0.0.1에서 각 face는 최소 세 개의 corner를 가져야 한다.
+- v0.1.0에서 각 face는 최소 세 개의 corner를 가져야 한다.
 
     ```text
     face_offsets[i + 1] - face_offsets[i] >= 3
@@ -577,7 +577,7 @@ CORNER → element_counts.corners
     - 의미나 binary 구조를 변경하지 않는 작은 수정
     - 설명 보완, 오탈자 수정, 예시 수정
 
-`0.0.z` 단계는 초기 실험 단계이므로, `z` 변경에서도 호환성이 보장되지 않을 수 있다.
+`0.y.z` 단계는 초기 실험 단계이므로, `y` 혹은 `z` 변경에서도 호환성이 보장되지 않을 수 있다.
 
 Reader는 자신이 지원하지 않는 `x` 버전의 파일을 읽어서는 안 된다.
 
@@ -585,7 +585,7 @@ Reader는 자신이 지원하지 않는 `x` 버전의 파일을 읽어서는 안
 
 ## 8. 지원 범위
 
-### v0.0.1에서 지원
+### v0.1.0에서 지원
 
 - 하나의 JSON 파일과 하나의 binary 파일
 - 하나 이상의 mesh
@@ -610,7 +610,7 @@ Reader는 자신이 지원하지 않는 `x` 버전의 파일을 읽어서는 안
 - Little-endian binary
 - 4바이트 정렬
 
-### v0.0.1에서 지원하지 않음
+### v0.1.0에서 지원하지 않음
 
 - Object parenting
 - Collection
