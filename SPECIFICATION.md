@@ -156,7 +156,7 @@ Blender의 Default Cube의 저장 예시이다.
     // 좌표계 정보
     "coordinate_system": {
         "up_axis": "+Z",
-        "forward_axis": "-Y",
+        "forward_axis": "+Y",
         "handedness": "RIGHT",
         "winding": "CCW",
         "meters_per_unit": 1.0

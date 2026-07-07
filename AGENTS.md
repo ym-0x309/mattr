@@ -19,3 +19,5 @@
 
 - 모호한 점이 있으면 혼자 추측해서 결정하지 말고 사용자에게 물어보기
 - 반드시 프로젝트 내부 문서는 참고할 것
+
+- blender extension 개발 중 blender에서 백그라운드 테스트를 돌릴 때 발생활 수 있는 RuntimeError 중 하나는 이미 `~/.config/blender/5.1/extensions/user_default/`에 이미 설치된 애드온과의 충돌로 인한 것일 수 있으며, 참고할 것
