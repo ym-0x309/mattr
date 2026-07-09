@@ -2,8 +2,8 @@
 
 ## 현재 목표
 
-- 기존 모델 포맷(.obj, .glb)에서 vertex attribute만 지원하는 한계에서 벗어나 edge, face 등 다른 도메인의 attribute도 저장되는 포맷 만들기 (완료)
-- Blender Importer 추가를 위한 기반 마련: 양방향 좌표 변환, binary reader, attribute 역매핑, 공유 유틸리티 분리
+- 기존 모델 포맷(.obj, .glb)에서 vertex attribute만 지원하는 한계에서 벗어나 edge, face 등 다른 도메인의 attribute도 저장되는 포맷(MATTR) 만들기
+- MATTR의 import와 export를 지원하는 blender extension 만들기
 
 ## 참고 문서
 - 프로젝트 내부
