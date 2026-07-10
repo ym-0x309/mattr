@@ -8,4 +8,4 @@
 
 Blender에서 제작한 메쉬를 MATTR 포맷으로 내보내는 익스텐션입니다.
 
-자세한 내용은 [해당 폴더](/blender_mattr_exporter/)를 참고하십시오.
+자세한 내용은 [해당 파일](/blender_mattr_exporter/docs/overview.md)를 참고하십시오.
