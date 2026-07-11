@@ -1,13 +1,13 @@
-# MATTR 포맷 명세(v0.2.0)
+# MATTR 포맷 명세(v0.3.0)
 
-> [!NOTE]
+> [!IMPORTANT]
 > - 포맷명: MATTR
 > - 정식 명칭: Mesh Attribute & Topology Transfer Representation
 > - 분리형 파일:
->     - model.mattr.json
->     - model.mattr.bin
+>     - `model.mattr.json`
+>     - `model.mattr.bin`
 > - 통합형 파일(현재 미지원, 향후 계획):
->     - model.mattr
+>     - `model.mattr`
 
 ## 1. 포맷의 목적
 
@@ -86,30 +86,36 @@ Vertex, edge, face, corner 사이의 연결 관계를 나타내는 필수 메쉬
 
 ## 3. 파일 구성
 
-```text
-test_mesh.mattr.json
-test_mesh.mattr.bin
-```
-
-통합형 파일(.mattr)은 `0.y.z`의 지원 범위에 포함되지 않는다.
-JSON과 Binary를 하나의 파일에 저장하는 chunk 기반 컨테이너 구조는
-향후 버전에서 별도로 정의한다.
-
-`0.y.z`는 분리형 파일 구조(model.mattr.json + model.mattr.bin)만 지원한다.
+> [!IMPORTANT]
+> 
+> ```text
+> test_mesh.mattr.json
+> test_mesh.mattr.bin
+> ```
+> 
+> 통합형 파일(.mattr)은 `0.y.z`의 지원 범위에 포함되지 않는다.
+> JSON과 Binary를 하나의 파일에 저장하는 chunk 기반 컨테이너 구조는
+> 향후 버전에서 별도로 정의한다.
+> 
+> `0.y.z`는 분리형 파일 구조(model.mattr.json + model.mattr.bin)만 지원한다.
+>
 
 ### JSON
 
-JSON에는 메타 데이터를 저장하며, UTF-8로 인코딩한다.
-
-```text
-포맷 버전
-오브젝트 이름
-메쉬 이름
-좌표계
-데이터 개수
-각 데이터 byte_offset
-Attribute 이름/domain/type
-```
+> [!IMPORTANT]
+> 
+> JSON에는 메타 데이터를 저장하며, UTF-8로 인코딩한다.
+> 
+> ```text
+> 포맷 버전
+> 오브젝트 이름
+> 메쉬 이름
+> 좌표계
+> 데이터 개수
+> 각 데이터 byte_offset
+> Attribute 이름/domain/type
+> ```
+> 
 
 #### 저장 방식 및 필드별 제약
 
@@ -177,14 +183,16 @@ Attribute 이름/domain/type
         | -------------- | ------: | ------------------------------ |
         | `F32`          | 4 bytes | IEEE 754 32비트 부동소수점 |
         | `I32`          | 4 bytes | 부호 있는 32비트 정수        |
+        |`I8`|1 byte|부호 있는 8비트 정수|
         | `U32`          | 4 bytes | 부호 없는 32비트 정수        |
-        |`BOOL`|1 byte|1바이트 boolean 값. `0b00000000`는 `false`, `0b00000001`는 `true`, 나머지 값은 유효하지 않음.|
+        |`U8`|1 byte|부호 없는 8비트 정수|
+        |`BOOL`|1 byte|1바이트 boolean 값. `0x00`는 `false`, `0x01`는 `true`, 나머지 값은 유효하지 않음.|
     - `component_count`: 하나의 element를 구성하는 component 수. 1 이상이어야 한다.
     - `element_count`: 배열에 저장된 element의 총 개수. 후술할 `face_offsets`의 경우를 제외하면 모두 해당 도메인의 `element_count`와 일치해야 한다.
 
 ##### 메쉬 정보
 
-> [!IMPORTANT]
+> [!TIP]
 >
 > [Blender 공식 Mesh 문서](https://developer.blender.org/docs/features/objects/mesh/mesh/)의 배열 구조를 기반으로 한다.
 
@@ -251,11 +259,22 @@ Attribute 이름/domain/type
                 ```
             - Non-planar n-gon의 삼각화 및 렌더링 방식은 이 포맷의 범위 밖이며, 이를 처리하는 방식은 reader/엔진의 책임으로 한다.
 
-
     - attribute: `attributes` 배열에 저장되는 일반 attribute
 
         - `name`: attribute 이름.
         - `domain`: `POINT`, `EDGE`, `FACE`, `CORNER` 중 하나.
+        - `semantic`: `coordinate_system` 변경에 의한 좌표계 변환이 필요하거나, 표준화된 해석 규칙이 필요한 attribute. 현재 지원되는 항목은 다음과 같다.
+            |semantic|component type|component count|좌표계 변환 지원|의미|
+            |-|-|-|-|-|
+            |`POSITION`|`F32`|3|✅️|3차원 위치 정보.|
+            |`DIRECTION`|`F32`|3|✅️|3차원 방향 정보.|
+            |`ROTATION`|`F32`|4|✅️|사원수 회전 정보. (x, y, z, w)로 저장됨.|
+            |`TANGENT`|`F32`|4|✅️|탄젠트 정보. 탄젠트(x, y, z)와 handedness(w)로 저장됨. Bitangent는 cross(normal, tangent.xyz) * tangent.w로 복원한다.|
+            |`COLOR`|`F32`, `U8`|4|❌|RGBA 색상|
+            |`NONE`|Any|Any|❌|그 외 attribute|
+
+            좌표계 변환이 지원되는 attribute의 경우, writer는 다른 좌표계로 내보낼 때, reader는 다른 좌표계에서 로드할 때 타겟 좌표계에 맞춰 변환해야 한다.
+
         - `data`: attribute data
 
 <details><summary>Blender의 Default Cube의 저장 예시</summary>
@@ -269,7 +288,7 @@ Attribute 이름/domain/type
 
     "buffer": {
         "uri": "test_mesh.bin",
-        "byte_length": 612
+        "byte_length": 804
     },
 
     "coordinate_system": {
@@ -351,6 +370,7 @@ Attribute 이름/domain/type
                 {
                     "name": "sharp_face",
                     "domain": "FACE",
+                    "semantic": "NONE",
                     "data": {
                         "byte_offset": 412,
                         "byte_length": 6,
@@ -362,12 +382,25 @@ Attribute 이름/domain/type
                 {
                     "name": "UVMap",
                     "domain": "CORNER",
+                    "semantic": "NONE",
                     "data": {
                         "byte_offset": 420,
                         "byte_length": 192,
                         "component_type": "F32",
                         "component_count": 2,
                         "element_count": 24
+                    }
+                },
+                {
+                    "name": "custom_attribute",
+                    "domain": "EDGE",
+                    "semantic": "ROTATION",
+                    "data": {
+                        "byte_offset": 612,
+                        "byte_length": 192,
+                        "component_type": "F32",
+                        "component_count": 4,
+                        "element_count": 12
                     }
                 }
             ]
@@ -379,18 +412,22 @@ Attribute 이름/domain/type
 
 ### Binary
 
-```text
-positions
-edges
-corner_vertices
-corner_edges
-face_offsets
-attribute values
-````
-
-- Binary에는 각 배열을 연속적으로 저장한다.
-
-- reader는 JSON에 기록된 `byte_offset`을 기준으로 데이터를 읽어야 하며 배열의 실제 저장 순서에 의존해서는 안 된다.
+>
+> [!IMPORTANT]
+> 
+> ```text
+> positions
+> edges
+> corner_vertices
+> corner_edges
+> face_offsets
+> attribute values
+> ````
+> 
+> - Binary에는 각 배열을 연속적으로 저장한다.
+> 
+> - reader는 JSON에 기록된 `byte_offset`을 기준으로 데이터를 읽어야 하며 배열의 실제 저장 순서에 의존해서는 안 된다.
+>
 
 #### 저장 방식
 
@@ -409,7 +446,7 @@ attribute values
         BOOL attribute
         6 bytes
 
-        padding
+        unused space
         2 bytes
 
         offset 420
@@ -424,7 +461,9 @@ attribute values
 
 ## 4. 유효성 조건
 
-여러 필드의 관계를 검사하는 제약 및 공통 제약.
+> [!NOTE]
+> 
+> 여러 필드의 관계를 검사하는 제약 및 공통 제약.
 
 ### Index 범위
 
@@ -435,8 +474,15 @@ attribute values
 
 ### 이름의 제약 조건
 
-- 이름은 빈 문자열이어선 안 된다
-- 파일 내의 다른 이름과 겹쳐서는 안 된다.
+- 이름은 빈 문자열이어선 안 된다.
+
+- object.name은 objects 내에서 유일해야 한다.
+- mesh.name은 meshes 내에서 유일해야 한다.
+- attribute.name은 하나의 mesh 안에서만 유일해야 한다.
+
+### Attribute data 제약 조건
+
+- `topology` 구조체 의 필드 및 `semantic`이 `CUSTOM`이 아닌 attribute는 저장 시 `component_type`과 `component_count`를 명세와 일치시켜야 한다.
 
 ### Corner와 edge의 일관성
 
@@ -482,7 +528,9 @@ attribute values
 
 ## 5. 버전과 호환성
 
-버전은 문서에는 `x.y.z` 형식을, 포맷에는 `x.y` 형식을 사용한다.
+> [!IMPORTANT]
+> 
+> 버전은 문서에는 `x.y.z` 형식을, 포맷에는 `x.y` 형식을 사용한다.
 
 - `x`
     - 이전 버전과 호환되지 않는 중대한 변경
