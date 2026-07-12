@@ -1,4 +1,4 @@
-# MATTR 포맷 명세(v0.3.0)
+# MATTR 포맷 명세(v0.3.1)
 
 > [!IMPORTANT]
 > - 포맷명: MATTR
@@ -482,7 +482,7 @@ Vertex, edge, face, corner 사이의 연결 관계를 나타내는 필수 메쉬
 
 ### Attribute data 제약 조건
 
-- `topology` 구조체 의 필드 및 `semantic`이 `CUSTOM`이 아닌 attribute는 저장 시 `component_type`과 `component_count`를 명세와 일치시켜야 한다.
+- `topology` 구조체 의 필드 및 `semantic`이 `NONE`이 아닌 attribute는 저장 시 `component_type`과 `component_count`를 명세와 일치시켜야 한다.
 
 ### Corner와 edge의 일관성
 
