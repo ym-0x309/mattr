@@ -1,4 +1,4 @@
-# MATTR 포맷 명세(v0.3.1)
+# MATTR 포맷 명세(v0.3.2)
 
 > [!IMPORTANT]
 > - 포맷명: MATTR
@@ -27,7 +27,34 @@ CORNER domain attribute
 
 ---
 
-## 2. 용어 정리
+## 2. 포맷의 범위
+
+본 포맷은 다음 정보를 저장한다.
+
+- Object Transform
+- Vertex / Edge / Face / Corner Topology
+- Mesh Attribute
+- Coordinate System
+
+다음 정보는 MATTR `1.x`까지의 범위에 **포함되지 않는다**(`2.x` 범위는 미정).
+
+- Material 정의
+- Texture 및 이미지 파일
+- Shader(WGSL, GLSL 등)
+- Animation
+- Armature / Bone
+- Modifier Stack
+- Scene 구성
+- Camera
+- Light
+- Render Setting
+
+Texture, Material Graph 등 기하 정보와 attribute에 직접적으로 관련되지 않은 데이터는 포맷의 범위에 포함하지 않으며,
+필요한 경우 외부 시스템에서 `MATERIAL_INDEX` 등의 Attribute를 이용하여 연결한다.
+
+---
+
+## 3. 용어 정리
 
 ### Vertex
 
@@ -84,7 +111,7 @@ Vertex, edge, face, corner 사이의 연결 관계를 나타내는 필수 메쉬
 
 ---
 
-## 3. 파일 구성
+## 4. 파일 구성
 
 > [!IMPORTANT]
 > 
@@ -459,7 +486,7 @@ Vertex, edge, face, corner 사이의 연결 관계를 나타내는 필수 메쉬
 
 ---
 
-## 4. 유효성 조건
+## 5. 유효성 조건
 
 > [!NOTE]
 > 
@@ -526,7 +553,7 @@ Vertex, edge, face, corner 사이의 연결 관계를 나타내는 필수 메쉬
 
 ---
 
-## 5. 버전과 호환성
+## 6. 버전과 호환성
 
 > [!IMPORTANT]
 > 
@@ -552,68 +579,3 @@ Vertex, edge, face, corner 사이의 연결 관계를 나타내는 필수 메쉬
 - Reader는 자신이 지원하지 않는 `x` 버전의 파일을 읽어서는 안 된다.
 
 ---
-
-## 6. 지원 범위
-
-### 현재 버전에서 지원
-
-- 하나의 JSON 파일과 하나의 binary 파일
-- 하나 이상의 mesh
-- 하나 이상의 mesh object
-- 여러 object가 동일한 mesh를 참조하는 구조
-- 4×4 object transform 행렬
-- Vertex
-- Loose vertex
-- Edge
-- Loose edge
-- Triangle
-- Quad
-- N-gon
-- `POINT` domain attribute
-- `EDGE` domain attribute
-- `FACE` domain attribute
-- `CORNER` domain attribute
-- 고정 길이 attribute
-- 빈 mesh
-- Little-endian binary
-- 4바이트 정렬
-
-### 현재 버전에서 지원하지 않음
-
-- Object parenting
-- Collection
-- Scene hierarchy
-- Modifier stack
-- Material
-- Shader 및 material graph
-- Texture 및 image
-- Armature
-- Vertex group
-- Skin weight
-- Shape key
-- Animation
-- Curve
-- Point cloud
-- Object instance
-- Sparse attribute
-- Binary compression
-- 여러 binary buffer
-- 64-bit index
-- Face 내부의 hole
-- 통합형 파일(.mattr) 바이너리 컨테이너
-
----
-
-## 7. 향후 확장
-
-다음 기능은 향후 버전에서 검토한다.
-
-- JSON과 binary를 하나의 파일에 저장하는 chunk 기반 컨테이너
-- 자연 정렬 또는 8바이트 정렬
-- Attribute semantic
-- Material 및 material slot
-- Vertex group 및 skin weight
-- Shape key
-- Object parenting
-- Binary 압축
-- MESH 외 다른 타입

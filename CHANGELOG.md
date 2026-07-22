@@ -2,28 +2,32 @@
 
 ## 향후 계획
 
-### v0.4
-
-- parenting 지원
-
-### v0.5
-
-- 외부 파일 참조(텍스쳐, 쉐이더(.wgsl)) 지원
-
 ### v1.0
 
 - 통합 바이너리 정의(model.mattr)
 
 ### v1.0 이후
 
-- **우선사항: rust importer 개발 시작**
+- **우선사항:** 
+  - rust importer 개발 시작
+  - 레포지토리 분리(MATTR 명세/blender extension, rust importer)
+- parenting 지원
 - `MESH` 외 다른 오브젝트 타입(`CURVE`, `POINT_CLOUD`, `INSTANCE` 등) 지원
 
 ---
 
 ## 변경 기록
 
-### v0.3
+### v0.3.2
+
+- 6장과 7장을 합치고, 해당 내용을 2장으로 위치 변경(`2. 포맷의 범위`)
+  - 포맷 `1.x` 버전의 지원 범위를 명확히 정의
+
+### v0.3.1
+
+- 오타 수정
+
+### v0.3.0
 
 - `component_type`에 `I8`, `U8` 추가
 - attribute에 `semantic` 필드 도입 (`POSITION`, `DIRECTION`, `ROTATION`, `TANGENT`, `COLOR`, `NONE`)
@@ -31,7 +35,7 @@
 - BOOL 표기를 `0b`에서 `0x`로 변경
 - 유효성 조건에 "Attribute data 제약 조건" 추가 (semantic이 NONE이 아닌 attribute의 type/count 제약)
 
-### v0.2
+### v0.2.0
 
 - 문서 구조 개편: "포맷 규칙"(구 3절), "저장 구조"(구 5절) 섹션 제거 → 필드별 제약으로 통합
 - `header.version` 포맷을 `x.y.z`에서 `x.y`로 변경
@@ -43,7 +47,7 @@
 - topology 필드의 중복 edge 및 self-edge 금지 규칙 명시
 - 지원 범위에서 `F32`/`U32` 구체 명기 제거 → "고정 길이 attribute"로 일반화
 
-### v0.1
+### v0.1.0
 
 > [!IMPORTANT]
 > 
