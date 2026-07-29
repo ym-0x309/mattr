@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-labelledby="title desc">
+  <title id="title">Topolyx</title>
+  <desc id="desc">겹쳐진 두 삼각형 메쉬로 topology 변환을 표현한 Topolyx 로고 아이콘</desc>
+
+  <!-- secondary mesh (변환된/대상 topology) -->
+  <polygon points="95,180 150,45 200,130"
+           fill="none" stroke="#5DCAA5" stroke-width="9"
+           stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+  <circle cx="95"  cy="180" r="7" fill="#5DCAA5" opacity="0.7"/>
+  <circle cx="150" cy="45"  r="7" fill="#5DCAA5" opacity="0.7"/>
+  <circle cx="200" cy="130" r="7" fill="#5DCAA5" opacity="0.7"/>
+
+  <!-- primary mesh (원본 topology) -->
+  <polygon points="70,175 125,55 180,150"
+           fill="none" stroke="#0F6E56" stroke-width="9"
+           stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="70"  cy="175" r="8" fill="#0F6E56"/>
+  <circle cx="125" cy="55"  r="8" fill="#0F6E56"/>
+  <circle cx="180" cy="150" r="8" fill="#0F6E56"/>
+</svg>
