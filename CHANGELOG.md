@@ -1,22 +1,26 @@
-# MATTR 버전별 변경 기록 및 향후 계획
+# Topolyx 버전별 변경 기록 및 향후 계획
 
 ## 향후 계획
-
-### v1.0
-
-- 통합 바이너리 정의(model.mattr)
 
 ### v1.0 이후
 
 - **우선사항:** 
   - rust importer 개발 시작
-  - 레포지토리 분리(MATTR 명세/blender extension, rust importer)
+  - 레포지토리 분리(명세/blender extension, rust importer)
 - parenting 지원
 - `MESH` 외 다른 오브젝트 타입(`CURVE`, `POINT_CLOUD`, `INSTANCE` 등) 지원
 
 ---
 
 ## 변경 기록
+
+### v1.0.0
+
+- 포맷 이름을 `Topolyx`, 확장자명을 `.tlyx`로 변경
+- 단일 통합 파일(model.tlyx) 정의, 기존 분리형 파일 대체
+- 파일에 저장되는 좌표계 고정(Z+ up, Y+ forward, RIGHT handedness, CCW winding)
+- semantic 별 object transform 적용 규칙 명시
+- semantic에 `NORMAL` 추가
 
 ### v0.3.2
 
