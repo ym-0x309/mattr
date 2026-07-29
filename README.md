@@ -1,20 +1,21 @@
 # Topolyx
 
+[English(`en_US`)](/README.md) | [한국어(`ko_KR`)](/ko_KR/README.md)
+
 ![Topolyx: Mesh Attribute & Topology Interchange Format](./images/topolyx-wordmark.png)
 
 > [!IMPORTANT]
-> `Topolyx`는 **Topo**logy + **Poly**gon + e**X**change를 합성한 단어입니다.\
-> 정식 명칭은 `Mesh Attribute & Topology Interchange Format`으로,\
-> Blender에서 제작한 메쉬를 attribute 데이터가 보존된 상태로 자체 엔진이나 툴로 가져오기 위한 포맷입니다.
+> `Topolyx` is a portmanteau of **Topo**logy + **Poly**gon + e**X**change.\
+> Its full name is `Mesh Attribute & Topology Interchange Format`, a format for bringing meshes created in Blender into a custom engine or tool while preserving their attribute data.
 
-자세한 내용은 [명세](/SPECIFICATION.md)를 참고하십시오.
+See the [specification](/SPECIFICATION.md) for details.
 
-명세의 수정 기록과 향후 계획은 [CHANGELOG.md](/CHANGELOG.md)를 참고하십시오.
+See [CHANGELOG.md](/CHANGELOG.md) for the specification's revision history and future plans.
 
 ## Topolyx Blender Extension
 
-Blender에서 제작한 메쉬를 Topolyx 포맷으로 export/import하는 익스텐션입니다.
+An extension for exporting/importing meshes created in Blender to/from the Topolyx format.
 
-향후 [블렌더 공식 페이지](https://extensions.blender.org)에 업로드할 계획입니다.
+There are plans to upload it to the [official Blender extensions page](https://extensions.blender.org) in the future.
 
-자세한 내용은 [해당 레포지토리](https://github.com/ym-0x309/topolyx_blender_extension)를 참고하십시오.
+See [the corresponding repository](https://github.com/ym-0x309/topolyx_blender_extension) for details.

@@ -1,17 +1,19 @@
-# Topolyx 포맷 명세(v1.0.0)
+# Topolyx Format Specification (v1.0.0)
 
 > [!IMPORTANT]
-> - 포맷명: **Topolyx** (**Topo**logy, **Poly**gon, e**X**change)
-> - 정식 명칭: Mesh Attribute & Topology Interchange Format
-> - 파일: `model.tlyx` (단일 통합 파일)
+> - Format name: **Topolyx** (**Topo**logy, **Poly**gon, e**X**change)
+> - Full name: Mesh Attribute & Topology Interchange Format
+> - File: `model.tlyx` (single unified file)
 > - Magic bytes: `54 4C 59 58` (ASCII `TLYX`)
->
 
-## 1. 포맷의 목적
+> [!WARNING]
+> The original version of this document is in Korean(`ko_KR`), and the translation may not be accurate.
 
-Blender에서 제작한 메쉬를, attribute 데이터를 보존한 상태로 자체 엔진이나 툴로 가져오기 위한 포맷이다.
+## 1. Purpose of the Format
 
-일반적인 OBJ, glTF, FBX처럼 렌더링에 필요한 결과만 전달하는 것이 아니라, Blender `Mesh` 데이터 블록에 존재하는 다음 domain의 attribute를 가능한 한 손실 없이 보존하는 것을 핵심으로 한다.
+This is a format for bringing meshes created in Blender into a custom engine or tool while preserving their attribute data.
+
+Rather than transmitting only the results needed for rendering, as OBJ, glTF, or FBX typically do, the core goal of this format is to preserve, as losslessly as possible, attributes of the following domains that exist on a Blender `Mesh` data block:
 
 ```text
 POINT domain attribute
@@ -20,60 +22,57 @@ FACE domain attribute
 CORNER domain attribute
 ```
 
-이 포맷은 완전한 Blender scene, modifier stack, material graph 또는 animation 데이터를 보존하는 것을 목적으로 하지 않는다.
+This format is not intended to preserve a complete Blender scene, modifier stack, material graph, or animation data.
 
 ---
 
-## 2. 포맷의 범위
+## 2. Scope of the Format
 
-본 포맷은 다음 정보를 저장한다.
+This format stores the following information:
 
 - Object Transform
 - Vertex / Edge / Face / Corner Topology
-- Mesh Attribute
+- Mesh Attributes
 - Coordinate System
 
-다음 정보는 Topolyx `1.x`까지의 범위에 **포함되지 않는다**(`2.x` 범위는 미정).
+The following information is **not included** in the scope of Topolyx up through `1.x` (the scope of `2.x` is undecided):
 
-- Material 정의
-- Texture 및 이미지 파일
-- Shader(WGSL, GLSL 등)
+- Material definitions
+- Textures and image files
+- Shaders (WGSL, GLSL, etc.)
 - Animation
 - Armature / Bone
 - Modifier Stack
-- Scene 구성
+- Scene composition
 - Camera
 - Light
-- Render Setting
+- Render Settings
 
-Texture, Material Graph 등 기하 정보와 attribute에 직접적으로 관련되지 않은 데이터는 포맷의 범위에 포함하지 않으며,
-필요한 경우 외부 시스템에서 `MATERIAL_INDEX` 등의 Attribute를 이용하여 연결한다.
+Textures, material graphs, and other data not directly related to geometry and attributes are not included in the scope of this format. Where needed, such data should be linked from an external system using attributes such as `MATERIAL_INDEX`.
 
 ---
 
-## 3. 용어 정리
+## 3. Terminology
 
 ### Vertex
 
-메쉬의 공간상 점이다. `positions` 배열의 하나의 element에 대응한다.
+A spatial point of the mesh. Corresponds to one element of the `positions` array.
 
 ### Edge
 
-두 vertex를 연결하는 요소이다. 각 edge는 두 vertex index를 저장한다.
+An element that connects two vertices. Each edge stores two vertex indices.
 
 ### Face
 
-메쉬의 polygon 요소이다. Vertex나 edge 배열을 직접 소유하지 않고,
-`face_offsets`를 통해 corner 배열의 연속된 범위를 참조한다.
+A polygon element of the mesh. It does not directly own vertex or edge arrays; instead, it references a contiguous range of the corner array via `face_offsets`.
 
 ### Face Corner
 
-특정 face에서 특정 vertex가 사용되는 위치이다.
-Corner는 face 간에 공유되지 않는다. 같은 vertex가 여러 face에서 사용되는 경우에도 각 face는 별도의 corner를 가진다.
+The position at which a specific vertex is used within a specific face. Corners are not shared between faces — even when the same vertex is used by multiple faces, each face has its own separate corner.
 
 ### Domain
 
-Attribute가 대응하는 메쉬 요소의 종류이다.
+The kind of mesh element an attribute corresponds to.
 
 - `POINT`: vertex
 - `EDGE`: edge
@@ -82,275 +81,272 @@ Attribute가 대응하는 메쉬 요소의 종류이다.
 
 ### Element
 
-배열의 논리적 항목 하나이다.
+A single logical item in an array.
 
-예:
+Examples:
 
-- 하나의 position
-- 하나의 edge
-- 하나의 UV 좌표
+- one position
+- one edge
+- one UV coordinate
 
 ### Component
 
-하나의 element를 구성하는 scalar 값이다.
+A scalar value that makes up one element.
 
 ### Byte offset
 
-BIN 청크의 `chunk_data` 시작점으로부터 데이터 배열 시작점까지의 바이트 거리이다.
+The byte distance from the start of the BIN chunk's `chunk_data` to the start of a data array.
 
 ### Topology
 
-Vertex, edge, face, corner 사이의 연결 관계를 나타내는 필수 메쉬 데이터이다.
+The required mesh data representing the connectivity between vertices, edges, faces, and corners.
 
 ### Attribute
 
-특정 domain의 각 element에 대응하는 추가 데이터 배열이다.
+An additional data array corresponding to each element of a specific domain.
 
 ---
 
-## 4. 파일 구성
+## 4. File Structure
 
 > [!IMPORTANT]
-> 
+>
 > ```text
 > test_mesh.tlyx
 > ```
-> 
-> `1.x.y`부터 통합형 파일(`.tlyx`)이 분리형 파일(`.json + .bin`)을 대체한다.
 >
+> Starting from `1.x.y`, the unified file format (`.tlyx`) replaces the earlier split file format (`.json` + `.bin`).
 
-### 컨테이너 구조
+### Container Structure
 
 > [!TIP]
 >
-> glTF 포맷(`.glb`)의 저장 구조를 참고했다.
->
+> This structure is modeled after the glTF format's (`.glb`) storage layout.
 
 1. Header: 12 bytes
 
-    | offset | 이름 | 형식 | 설명 |
+    | offset | name | format | description |
     |-|-|-|-|
-    | 0 | magic | 4 바이트 ASCII 문자 | `TLYX` (`54 4C 59 58`) |
-    | 4 | version | U32 | major 버전 정수. 현재는 `1` |
-    | 8 | total_length | U32 | 파일 전체 바이트 길이(헤더 + 모든 청크 포함) |
+    | 0 | magic | 4-byte ASCII characters | `TLYX` (`54 4C 59 58`) |
+    | 4 | version | U32 | major version integer. Currently `1` |
+    | 8 | total_length | U32 | total byte length of the file (including header and all chunks) |
 
 2. Chunk 0: JSON
 
-    | 이름 | 형식 | 설명 |
+    | name | format | description |
     |-|-|-|
-    | chunk_length | U32 | chunk_data 길이, 패딩 포함, 4의 배수 |
-    | chunk_type | 4 바이트 ASCII 문자 | `JSON` |
-    | chunk_data | UTF-8 JSON | 끝을 `0x20`(space)로 패딩해 4바이트 정렬한 JSON |
+    | chunk_length | U32 | length of `chunk_data`, including padding; a multiple of 4 |
+    | chunk_type | 4-byte ASCII characters | `JSON` |
+    | chunk_data | UTF-8 JSON | JSON padded at the end with `0x20` (space) to a 4-byte alignment |
 
 3. Chunk 1: BIN
 
-    | 이름 | 형식 | 설명 |
+    | name | format | description |
     |-|-|-|
-    | chunk_length | U32 | chunk_data 길이, 패딩 포함, 4의 배수 |
-    | chunk_type | 4 바이트 ASCII 문자 | `BIN\0` |
-    | chunk_data | 바이너리 | 끝을 `0x00`으로 패딩해 4바이트 정렬 |
+    | chunk_length | U32 | length of `chunk_data`, including padding; a multiple of 4 |
+    | chunk_type | 4-byte ASCII characters | `BIN\0` |
+    | chunk_data | binary | binary padded at the end with `0x00` to a 4-byte alignment |
 
-파일에는 이 두 청크만 존재하며, 순서는 JSON → BIN으로 고정된다.
+The file contains exactly these two chunks, and their order is fixed as JSON → BIN.
 
 ### JSON
 
 > [!IMPORTANT]
-> 
-> JSON에는 메타 데이터를 저장하며, UTF-8로 인코딩한다.
-> 
+>
+> The JSON stores metadata and is encoded in UTF-8.
+>
 > ```text
-> 포맷 버전
-> 오브젝트 이름
-> 메쉬 이름
-> 좌표계
-> 데이터 개수
-> 각 데이터 byte_offset
-> Attribute 이름/domain/type
+> format version
+> object name
+> mesh name
+> coordinate system
+> element counts
+> byte_offset for each data array
+> attribute name / domain / type
 > ```
-> 
 
-#### 저장 방식 및 필드별 제약
+#### Storage Method and Field-Level Constraints
 
-##### 파일 기본 정보
+##### Basic File Information
 
-- `header`: 포맷 정보
+- `header`: format information
 
     - `format`: `Topolyx`
     - `version`: `x.y`
 
-##### 좌표계 정보
+##### Coordinate System Information
 
-- `coordinate_system`: 월드 좌표계 정의. `up_axis`, `forward_axis`, `handedness`, `winding`은 Blender의 월드 좌표계를 그대로 따르는 고정값이며, 모든 Topolyx 파일에서 동일하다.
+- `coordinate_system`: defines the world coordinate system. `up_axis`, `forward_axis`, `handedness`, and `winding` are fixed values that directly follow Blender's world coordinate system, and they are identical across every Topolyx file.
 
-    - `up_axis`: 항상 `+Z`. 다른 값이면 유효하지 않은 파일이다.
-    - `forward_axis`: 항상 `+Y`. 다른 값이면 유효하지 않은 파일이다.
-    - `handedness`: 항상 `RIGHT`. 다른 값이면 유효하지 않은 파일이다.
-    - `winding`: 항상 `CCW`. 다른 값이면 유효하지 않은 파일이다.
-    - `meters_per_unit`: 좌표계에서 1m의 길이. 이 값만 파일마다 다를 수 있다.
-        - 0 초과의 유효한 수여야 한다.(NaN, Infinity 불가)
+    - `up_axis`: always `+Z`. A different value makes the file invalid.
+    - `forward_axis`: always `+Y`. A different value makes the file invalid.
+    - `handedness`: always `RIGHT`. A different value makes the file invalid.
+    - `winding`: always `CCW`. A different value makes the file invalid.
+    - `meters_per_unit`: the length of 1 meter in this coordinate system. This is the only value that may differ from file to file.
+        - Must be a valid number greater than 0 (NaN and Infinity are not allowed).
 
 > [!NOTE]
 >
-> `up_axis`, `forward_axis`, `handedness`, `winding`은 모든 Topolyx 파일에서 고정되므로 파일 간 축/handedness 변환은 필요하지 않다.
-> 다만 `meters_per_unit`은 파일마다 다를 수 있으며, 서로 다른 단위 축척 간의 값 변환은 이 포맷이 보장하지 않고 writer/reader 구현의 책임이다.
->
+> Because `up_axis`, `forward_axis`, `handedness`, and `winding` are fixed across every Topolyx file, no axis/handedness conversion between files is necessary.
+> However, `meters_per_unit` may differ between files, and converting values between different unit scales is not guaranteed by this format — it is the responsibility of the writer/reader implementation.
 
-##### 오브젝트 정보
+##### Object Information
 
-- object: `objects` 배열의 내용물
+- object: contents of the `objects` array
 
-    - `name`: 오브젝트 이름.
-    - `type`: 현재 `MESH`만 지원.
-    - `index`: 뒤의 `type`마다 배정된 배열에서의 index. 예를 들어 type이 MESH인 경우 index는 meshes 배열의 index를 의미한다.
-    - `transform`: 원본 메쉬에 적용되는 4x4 변환 행렬. 열 우선(Column-Major) 순서.
+    - `name`: the object's name.
+    - `type`: currently only `MESH` is supported.
+    - `index`: the index into the array assigned per `type`. For example, when `type` is `MESH`, `index` refers to the index into the `meshes` array.
+    - `transform`: the 4x4 transform matrix applied to the source mesh, in column-major order.
 
-        - 벡터는 열 벡터(Column Vector)로 취급하며, 변환은 `M × v` 순서로 적용한다.
-        - 메쉬 별 local axis는 `transform`을 통해 world space로 변환됨.
-        - `transform`이 topology(`positions`) 및 attribute의 각 semantic에 구체적으로 어떻게 적용되는지는 뒤의 "Object Transform 적용 규칙" 절을 따른다.
+        - Vectors are treated as column vectors, and the transform is applied in the order `M × v`.
+        - Each mesh's local axes are converted to world space via `transform`.
+        - The exact way `transform` is applied to the topology (`positions`) and to each attribute semantic follows the "Object Transform Application Rules" section below.
 
-현재 parenting은 미지원.
+Parenting is currently not supported.
 
-##### Attribute 정보
+##### Attribute Information
 
-- attribute data: `topology` 데이터와 `attributes`에 공통으로 사용되는 필드
+- attribute data: fields shared in common between `topology` data and `attributes`
 
-    - `byte_offset`: BIN 청크의 `chunk_data` 시작점 기준 데이터 배열의 byte offset
-        - 다음 조건을 만족해야 한다(4바이트 정렬)
+    - `byte_offset`: the byte offset of the data array, measured from the start of the BIN chunk's `chunk_data`.
+        - Must satisfy the following condition (4-byte alignment):
             ```text
             byte_offset % 4 == 0
-            ````
-    - `byte_length`: 데이터 배열이 차지하는 전체 byte 길이. 
-        - 다음과 같이 계산한다.
+            ```
+    - `byte_length`: the total byte length occupied by the data array.
+        - Calculated as follows:
             ```text
             byte_length
-            = component_type의 byte 크기
+            = byte size of component_type
             * component_count
             * element_count
             ```
-        - 다음 조건을 만족해야 하며, 다음 계산에서 정수 overflow가 발생해선 안 된다.
+        - Must satisfy the following condition, and the calculation must not overflow an integer:
             ```text
-            byte_offset + byte_length <= BIN 청크의 chunk_length
+            byte_offset + byte_length <= chunk_length of the BIN chunk
             ```
-    - `component_type`: 각 component를 저장하는 binary scalar type. 현재 지원되는 component는 다음과 같음.
+    - `component_type`: the binary scalar type used to store each component. The currently supported components are as follows.
 
-        | Component type |      크기 | 의미                             |
-        | -------------- | ------: | ------------------------------ |
-        | `F32`          | 4 bytes | IEEE 754 32비트 부동소수점 |
-        | `I32`          | 4 bytes | 부호 있는 32비트 정수        |
-        |`I8`|1 byte|부호 있는 8비트 정수|
-        | `U32`          | 4 bytes | 부호 없는 32비트 정수        |
-        |`U8`|1 byte|부호 없는 8비트 정수|
-        |`BOOL`|1 byte|1바이트 boolean 값. `0x00`는 `false`, `0x01`는 `true`, 나머지 값은 유효하지 않음.|
-    - `component_count`: 하나의 element를 구성하는 component 수. 1 이상이어야 한다.
-    - `element_count`: 배열에 저장된 element의 총 개수. 후술할 `face_offsets`의 경우를 제외하면 모두 해당 도메인의 `element_count`와 일치해야 한다.
+        | Component type |    size | meaning |
+        | --------------- | ------: | ------- |
+        | `F32`           | 4 bytes | IEEE 754 32-bit floating point |
+        | `I32`           | 4 bytes | signed 32-bit integer |
+        | `I8`            | 1 byte  | signed 8-bit integer |
+        | `U32`           | 4 bytes | unsigned 32-bit integer |
+        | `U8`            | 1 byte  | unsigned 8-bit integer |
+        | `BOOL`          | 1 byte  | 1-byte boolean value. `0x00` is `false`, `0x01` is `true`; any other value is invalid. |
 
-##### 메쉬 정보
+    - `component_count`: the number of components that make up one element. Must be at least 1.
+    - `element_count`: the total number of elements stored in the array. Except for `face_offsets` (described later), this must match the `element_count` of the corresponding domain.
+
+##### Mesh Information
 
 > [!TIP]
 >
-> [Blender 공식 Mesh 문서](https://developer.blender.org/docs/features/objects/mesh/mesh/)의 배열 구조를 기반으로 한다.
+> Based on the array structure described in the [official Blender Mesh documentation](https://developer.blender.org/docs/features/objects/mesh/mesh/).
 
- - mesh: `meshes` 배열의 내용물
+ - mesh: contents of the `meshes` array
 
-    - `name`: 메쉬 이름.
+    - `name`: the mesh's name.
 
     - `element_counts`
 
-        - `vertices`: 버텍스 개수
-        - `edges`: 에지 개수
-        - `faces`: 페이스 개수
-        - `corners`: 페이스 코너 개수
+        - `vertices`: vertex count
+        - `edges`: edge count
+        - `faces`: face count
+        - `corners`: face corner count
 
-    - `topology`: 필수 메쉬 데이터.
+    - `topology`: required mesh data.
 
         - `positions`: attribute data
 
-            - 각 버텍스의 local space 위치
+            - the local-space position of each vertex
             - `component_type`: `F32`
             - `component_count`: 3
             - `domain`: `POINT`
-            - Object `transform` 적용 시의 변환 규칙은 뒤의 "Object Transform 적용 규칙" 절을 따른다.
+            - The conversion rule applied when the object's `transform` is applied follows the "Object Transform Application Rules" section below.
 
         - `edges`: attribute data
 
-            - 각 edge를 구성하는 두 vertex의 index
+            - the indices of the two vertices that make up each edge
             - `component_type`: `U32`
             - `component_count`: 2
             - `domain`: `EDGE`
-            - 두 vertex index의 순서는 edge의 방향을 의미하지 않는다.
-            - 중복 edge 및 self-edge는 허용하지 않는다.
+            - The order of the two vertex indices does not imply a direction for the edge.
+            - Duplicate edges and self-edges are not allowed.
 
         - `corner_vertices`: attribute data
 
-            - 각 face corner가 참조하는 vertex의 index
+            - the index of the vertex referenced by each face corner
             - `component_type`: `U32`
             - `component_count`: 1
             - `domain`: `CORNER`
-            - 같은 face에 속한 corner들은 polygon을 순회하는 순서대로 저장되어야 하며, 이때 순회 방향은 JSON 파일의 `winding`을 따른다.
-            
+            - Corners belonging to the same face must be stored in the order in which they traverse the polygon, and the traversal direction follows the `winding` value in the JSON file.
+
         - `corner_edges`: attribute data
 
-            - 각 face corner에서 같은 face의 다음 corner 방향으로 이어지는 edge의 index
+            - the index of the edge that leads from each face corner toward the next corner of the same face
             - `component_type`: `U32`
             - `component_count`: 1
             - `domain`: `CORNER`
 
         - `face_offsets`: attribute data
 
-            - 각 face가 사용하는 corner 배열 범위의 시작 index
+            - the starting index, within the corner array, of the range of corners used by each face
             - `component_type`: `U32`
             - `component_count`: 1
             - `domain`: `FACE`
-            - **`element_count`는 `faces + 1`과 같아야 한다.**
-            - face `i`가 사용하는 corner 범위는 다음과 같다.
+            - **`element_count` must equal `faces + 1`.**
+            - The range of corners used by face `i` is:
 
                 ```text
                 [face_offsets[i], face_offsets[i + 1])
-                ````
-            - `face_offsets`의 처음 값은 0, 마지막 값은 전체 corner 수와 같아야 한다.
-            - 또한 각 face는 최소 3개의 corner를 가져야 하기 때문에, 다음 조건을 만족해야 한다.
+                ```
+            - The first value of `face_offsets` must be 0, and the last value must equal the total number of corners.
+            - Each face must have at least 3 corners, so the following condition must hold:
                 ```text
                 face_offsets[i + 1] - face_offsets[i] >= 3
                 ```
-            - Non-planar n-gon의 삼각화 및 렌더링 방식은 이 포맷의 범위 밖이며, 이를 처리하는 방식은 reader/엔진의 책임으로 한다.
+            - The triangulation and rendering of non-planar n-gons is outside the scope of this format; handling this is the responsibility of the reader/engine implementation.
 
-    - attribute: `attributes` 배열에 저장되는 일반 attribute
+    - attribute: general attributes stored in the `attributes` array
 
-        - `name`: attribute 이름.
-        - `domain`: `POINT`, `EDGE`, `FACE`, `CORNER` 중 하나.
-        - `semantic`: 표준화된 해석 규칙이 필요한 attribute에 지정한다. 현재 지원되는 항목은 다음과 같다.
+        - `name`: the attribute's name.
+        - `domain`: one of `POINT`, `EDGE`, `FACE`, `CORNER`.
+        - `semantic`: assigned to attributes that require a standardized interpretation rule. The currently supported values are as follows.
 
-            |semantic|component type|component count|의미|
+            |semantic|component type|component count|meaning|
             |-|-|-|-|
-            |`POSITION`|`F32`|3|3차원 위치 정보.|
-            |`DIRECTION`|`F32`|3|3차원 방향 정보.|
-            |`NORMAL`|`F32`|3|3차원 법선 정보. 값의 형식은 `DIRECTION`과 같지만, Object `transform` 적용 시 역전치행렬을 사용하는 등 변환 규칙이 다르다. 자세한 내용은 "Object Transform 적용 규칙" 절 참고.|
-            |`ROTATION`|`F32`|4|사원수 회전 정보. (x, y, z, w)로 저장됨.|
-            |`TANGENT`|`F32`|4|탄젠트 정보. 탄젠트(x, y, z)와 handedness(w)로 저장됨. Bitangent는 `cross(normal, tangent.xyz) * tangent.w`로 복원하며, 여기서 normal은 같은 mesh 안에 존재하는 `NORMAL` semantic attribute를 가리킨다.|
-            |`COLOR`|`F32`, `U8`|4|RGBA 색상|
-            |`NONE`|Any|Any|그 외 attribute|
+            |`POSITION`|`F32`|3|3D position information.|
+            |`DIRECTION`|`F32`|3|3D direction information.|
+            |`NORMAL`|`F32`|3|3D normal information. Its value format is the same as `DIRECTION`, but its conversion rule differs — e.g. the inverse transpose matrix is used when applying the object `transform`. See the "Object Transform Application Rules" section for details.|
+            |`ROTATION`|`F32`|4|Quaternion rotation information, stored as (x, y, z, w).|
+            |`TANGENT`|`F32`|4|Tangent information, stored as tangent (x, y, z) plus handedness (w). The bitangent is reconstructed as `cross(normal, tangent.xyz) * tangent.w`, where `normal` refers to the `NORMAL` semantic attribute present in the same mesh.|
+            |`COLOR`|`F32`, `U8`|4|RGBA color|
+            |`NONE`|Any|Any|any other attribute|
 
         - `data`: attribute data
 
-##### Object Transform 적용 규칙
+###### Object Transform Application Rules
 
-Object의 `transform`(local → world, 4x4)을 mesh의 topology 및 attribute 값에 적용할 때는 semantic에 따라 아래 규칙을 따른다.
+When applying an object's `transform` (local → world, 4x4) to a mesh's topology and attribute values, follow the rules below based on semantic.
 
-`transform`의 선형(3x3) 부분을 `L`, 이동(translation) 부분을 `t`라 한다.
+Let `L` denote the linear (3x3) part of `transform`, and `t` denote the translation part.
 
-| 대상 | 적용 방식 |
+| target | how it is applied |
 |-|-|
-| `positions`(topology), `POSITION` | `L · p + t` |
-| `DIRECTION` | `L · v`. 이동은 적용하지 않으며, 재정규화하지 않는다. |
-| `NORMAL` | `transpose(inverse(L)) · n`. 이동은 적용하지 않으며, 적용 후 단위벡터로 재정규화한다. |
-| `TANGENT` | `xyz`는 `DIRECTION`과 동일하게 적용한 뒤 재정규화한다. `det(L) < 0`이면 `w` 성분의 부호를 반전한다. |
-| `ROTATION` | `q' = quat(R) ⊗ q`. `R`은 `L`에서 추출한 순수 회전 성분이다. |
-| `COLOR`, `NONE` | 변환하지 않는다. |
+| `positions` (topology), `POSITION` | `L · p + t` |
+| `DIRECTION` | `L · v`. Translation is not applied, and the result is not re-normalized. |
+| `NORMAL` | `transpose(inverse(L)) · n`. Translation is not applied; the result is re-normalized to a unit vector afterward. |
+| `TANGENT` | The `xyz` part is applied the same way as `DIRECTION` and then re-normalized. If `det(L) < 0`, the sign of the `w` component is flipped. |
+| `ROTATION` | `q' = quat(R) ⊗ q`. `R` is the pure rotation component extracted from `L`. |
+| `COLOR`, `NONE` | Not transformed. |
 
-- `L`이 특이행렬(singular, `det(L) = 0`)이면 위 변환은 정의되지 않으며, 이는 5장의 Transform 유효성 조건 위반이다.
-- `L`에 반사(reflection)가 포함되어(`det(L) < 0`) `ROTATION` semantic attribute와 함께 쓰이는 경우, `L`에서 순수 회전 성분 `R`을 추출하는 구체적인 방법(극분해 등)은 이 포맷의 범위 밖이며 reader/writer 구현의 책임이다.
+- If `L` is a singular matrix (`det(L) = 0`), the transform above is undefined, which is a violation of the Transform Validity condition in Section 5.
+- When `L` includes a reflection (`det(L) < 0`) and is used together with a `ROTATION` semantic attribute, the specific method used to extract the pure rotation component `R` from `L` (e.g. polar decomposition) is outside the scope of this format and is the responsibility of the reader/writer implementation.
 
-<details><summary>Blender의 Default Cube의 저장 예시 (JSON 청크의 chunk_data)</summary>
+<details><summary>Example storage of Blender's Default Cube (chunk_data of the JSON chunk)</summary>
 
 ```json
 {
@@ -374,8 +370,8 @@ Object의 `transform`(local → world, 4x4)을 mesh의 topology 및 attribute �
             "index": 0,
             "transform": [
                 1, 0, 0, 0,
-                0, 1, 0, 0, 
-                0, 0, 1, 0, 
+                0, 1, 0, 0,
+                0, 0, 1, 0,
                 0, 0, 0, 1
             ]
         }
@@ -478,11 +474,10 @@ Object의 `transform`(local → world, 4x4)을 mesh의 topology 및 attribute �
 ```
 </details>
 
-### BIN 청크 데이터
+### BIN Chunk Data
 
->
 > [!IMPORTANT]
-> 
+>
 > ```text
 > positions
 > edges
@@ -490,23 +485,22 @@ Object의 `transform`(local → world, 4x4)을 mesh의 topology 및 attribute �
 > corner_edges
 > face_offsets
 > attribute values
-> ````
-> 
-> - BIN 청크의 `chunk_data`에는 각 배열을 연속적으로 저장한다.
-> 
-> - reader는 JSON에 기록된 `byte_offset`을 기준으로 데이터를 읽어야 하며 배열의 실제 저장 순서에 의존해서는 안 된다.
+> ```
 >
+> - The BIN chunk's `chunk_data` stores each array consecutively.
+>
+> - A reader must read data based on the `byte_offset` recorded in the JSON, and must not rely on the actual storage order of the arrays.
 
-#### 저장 방식
+#### Storage Method
 
-- 모든 binary scalar 값은 `little-endian` 방식으로 저장한다.
+- All binary scalar values are stored in `little-endian` order.
 
-- 모든 데이터 배열은 4바이트 정렬을 사용한다.
-    - 각 데이터 배열의 `byte_offset`은 4의 배수여야 한다.
+- All data arrays use 4-byte alignment.
+    - The `byte_offset` of each data array must be a multiple of 4.
 
-- 저장된 배열 사이의 사용되지 않은 구역은 허용되지만, reader는 `byte_offset`과 `byte_length`에 의해 참조되지 않은 byte를 데이터로 해석해서는 안 된다.
+- Unused regions between stored arrays are allowed, but a reader must not interpret bytes that are not referenced by any `byte_offset`/`byte_length` as data.
 
-    - <details><summary>JSON 파일 예시에 해당하는 Binary 파일의 사용되지 않은 구역</summary>
+    - <details><summary>Unused region of the binary file corresponding to the JSON example</summary>
 
         ```text
         offset 412
@@ -523,72 +517,69 @@ Object의 `transform`(local → world, 4x4)을 mesh의 topology 및 attribute �
         ```
         </details>
 
-    - 또한 사용되지 않은 구역의 byte는 모두 0으로 저장해야 한다.
+    - Additionally, the bytes of unused regions must all be stored as 0.
 
 ---
 
-## 5. 유효성 조건
+## 5. Validity Conditions
 
 > [!NOTE]
-> 
-> 여러 필드의 관계를 검사하는 제약 및 공통 제약.
+>
+> Constraints that check relationships between multiple fields, plus common constraints.
 
-### 컨테이너 유효성
+### Container Validity
 
-- 파일은 4바이트 `magic`이 정확히 ASCII `TLYX`(`54 4C 59 58`)와 일치해야 한다. reader는 이를 정수로 변환하지 않고 바이트 순서 그대로 비교해야 하며, 일치하지 않으면 파일을 거부해야 한다.
-- 컨테이너 `header.version`(U32)은 reader가 지원하는 major 버전과 같아야 한다. 다르면 reader는 파일을 읽어서는 안 된다(6장 참고).
-- 컨테이너 `header.version`은 JSON `header.version`(`x.y`)의 `x`와 일치해야 한다.
-- `total_length`는 파일 전체의 실제 byte 길이와 정확히 같아야 한다.
-- 청크는 정확히 2개이며, 순서는 JSON 청크 → BIN 청크로 고정된다.
-- 각 청크의 `chunk_type`은 명세와 정확히 일치해야 한다(`JSON`, `BIN\0`).
-- 각 청크의 `chunk_length`는 4의 배수여야 하며, U32 표현 범위를 넘어서는 안 된다(청크 하나의 최대 크기는 약 4GiB로 제한된다).
-- JSON 청크의 패딩 바이트는 `0x20`만, BIN 청크의 패딩 바이트는 `0x00`만 허용한다. reader는 패딩 바이트를 데이터로 해석해서는 안 된다.
+- The 4-byte `magic` value of the file must exactly match ASCII `TLYX` (`54 4C 59 58`). A reader must compare this as a raw byte sequence without converting it to an integer, and must reject the file if it does not match.
+- The container `header.version` (U32) must equal the major version supported by the reader. If it differs, the reader must not read the file (see Section 6).
+- The container `header.version` must match the `x` of the JSON `header.version` (`x.y`).
+- `total_length` must exactly equal the actual byte length of the entire file.
+- There must be exactly two chunks, and their order is fixed as JSON chunk → BIN chunk.
+- Each chunk's `chunk_type` must exactly match the specification (`JSON`, `BIN\0`).
+- Each chunk's `chunk_length` must be a multiple of 4 and must not exceed the range representable by a U32 (the maximum size of a single chunk is limited to about 4 GiB).
+- Only `0x20` is allowed as the padding byte for the JSON chunk, and only `0x00` is allowed as the padding byte for the BIN chunk. A reader must not interpret padding bytes as data.
 
-### Index 범위
+### Index Range
 
-- 모든 index 값은 다음 범위에 있어야 한다.(index 값의 유효성)
+- All index values must fall within the following range (index value validity):
     ```text
-    0 <= index < 배열 길이
+    0 <= index < array length
     ```
 
-### 이름의 제약 조건
+### Name Constraints
 
-- 이름은 빈 문자열이어선 안 된다.
+- Names must not be empty strings.
 
-- object.name은 objects 내에서 유일해야 한다.
-- mesh.name은 meshes 내에서 유일해야 한다.
-- attribute.name은 하나의 mesh 안에서만 유일해야 한다.
+- `object.name` must be unique within `objects`.
+- `mesh.name` must be unique within `meshes`.
+- `attribute.name` must be unique only within a single mesh.
 
-### Attribute data 제약 조건
+### Attribute Data Constraints
 
-- `topology` 구조체 의 필드 및 `semantic`이 `NONE`이 아닌 attribute는 저장 시 `component_type`과 `component_count`를 명세와 일치시켜야 한다.
+- Fields of the `topology` struct, and attributes whose `semantic` is not `NONE`, must have `component_type` and `component_count` matching the specification when stored.
 
-### Transform 유효성
+### Transform Validity
 
-- object.transform의 선형(3x3) 부분은 행렬식이 0이 아니어야 한다(비특이 행렬). 0이면 유효하지 않은 파일이다.
+- The linear (3x3) part of `object.transform` must have a nonzero determinant (must be non-singular). If it is 0, the file is invalid.
 
-### Corner와 edge의 일관성
+### Corner and Edge Consistency
 
-- Face 안의 corner `c`와 그 다음 corner `n`에 대해, `corner_edges[c]`가 참조하는 edge는 다음 두 vertex를 연결해야 한다.
+- For corner `c` within a face and its next corner `n`, the edge referenced by `corner_edges[c]` must connect the following two vertices:
 
     ```text
     corner_vertices[c]
     corner_vertices[n]
     ```
 
-- Edge에 저장된 두 vertex index의 순서는 무관하다.
+- The order of the two vertex indices stored in an edge does not matter.
 
-- 마지막 corner의 다음 corner는 같은 face 범위의 첫 번째 corner이다.
+- The corner following the last corner is the first corner of the same face's range.
 
-- 모든 vertex가 `edges` 또는 `corner_vertices`에 의해
-  참조될 필요는 없다 (loose vertex 허용).
-- 모든 edge가 `corner_edges`에 의해 참조될 필요는 없다
-  (loose edge 허용).
+- Not every vertex needs to be referenced by `edges` or `corner_vertices` (loose vertices are allowed).
+- Not every edge needs to be referenced by `corner_edges` (loose edges are allowed).
 
+### Empty Mesh
 
-### 빈 Mesh
-
-- 다음과 같은 빈 mesh를 허용한다.
+- An empty mesh of the following form is allowed:
 
     ```text
     vertices = 0
@@ -597,7 +588,7 @@ Object의 `transform`(local → world, 4x4)을 mesh의 topology 및 attribute �
     corners = 0
     ```
 
-- 빈 mesh에서 필수 배열은 다음 조건을 만족해야 한다.
+- For an empty mesh, the required arrays must satisfy the following conditions:
 
     ```text
     positions.element_count == 0
@@ -609,40 +600,40 @@ Object의 `transform`(local → world, 4x4)을 mesh의 topology 및 attribute �
 
 ---
 
-## 6. 버전과 호환성
+## 6. Versioning and Compatibility
 
 > [!IMPORTANT]
-> 
-> 버전은 문서에는 `x.y.z` 형식을, JSON `header.version`에는 `x.y` 형식을, 컨테이너 헤더에는 major(`x`)만 담은 U32를 사용한다.
+>
+> Versions use the `x.y.z` format in documents, the `x.y` format in the JSON `header.version`, and a U32 holding only the major version (`x`) in the container header.
 
 - `x`
-    - 이전 버전과 호환되지 않는 중대한 변경
-    - 필수 필드 삭제 또는 의미 변경
-    - binary 표현 및 기본 topology 구조 변경
+    - A breaking change incompatible with previous versions.
+    - Removal or change in meaning of a required field.
+    - A change to the binary representation or the basic topology structure.
 
 - `y`
-    - 이전 버전과 호환되는 기능 추가
-    - 기존 reader가 무시할 수 있는 선택적 필드 또는 기능 추가
+    - An addition of a feature that remains compatible with previous versions.
+    - An optional field or feature added that an existing reader can ignore.
 
 - `z`
-    - 의미나 binary 구조를 변경하지 않는 작은 수정
-    - 설명 보완, 오탈자 수정, 예시 수정
+    - A small fix that does not change semantics or the binary structure.
+    - Clarification of a description, typo fix, or example fix.
 
-- `0.y.z` 단계는 초기 실험 단계이므로, `y` 변경에서도 호환성이 보장되지 않을 수 있다.
+- The `0.y.z` stage is an early experimental stage, so compatibility may not be guaranteed even across `y` changes.
 
-- `z` 변경은 포맷 구조를 변경하지 않는 수정이기 때문에, JSON 파일에 포함시키지 않는다.
+- Since a `z` change is a fix that does not alter the format structure, it is not included in the JSON file.
 
-- Reader는 자신이 지원하지 않는 `x` 버전의 파일을 읽어서는 안 된다.
+- A reader must not read a file whose `x` version it does not support.
 
 > [!NOTE]
-> 
-> 버전 정보는 세 곳에 나타나며 정밀도가 다르다.
-> 
-> - 문서(CHANGELOG 등) 버전: `x.y.z`
+>
+> Version information appears in three places, each with a different level of precision.
+>
+> - Document version (e.g. CHANGELOG): `x.y.z`
 > - JSON `header.version`: `x.y`
-> - 컨테이너 `header.version`(binary): `x`만 담은 U32
-> 
-> 컨테이너 버전은 reader가 JSON을 파싱하기 전, 바이너리 레벨에서 곧바로 지원 여부를 판단할 수 있도록 만든 값이다.
-> 컨테이너 버전과 JSON `header.version`의 `x`가 다르면 유효하지 않은 파일이다.
+> - Container `header.version` (binary): a U32 holding only `x`
+>
+> The container version exists so that a reader can determine support at the binary level, before parsing the JSON.
+> If the container version and the `x` of the JSON `header.version` differ, the file is invalid.
 
 ---
