@@ -16,6 +16,4 @@ See [CHANGELOG.md](/CHANGELOG.md) for the specification's revision history and f
 
 An extension for exporting/importing meshes created in Blender to/from the Topolyx format.
 
-There are plans to upload it to the [official Blender extensions page](https://extensions.blender.org) in the future.
-
-See [the corresponding repository](https://github.com/ym-0x309/topolyx_blender_extension) for details.
+See [the corresponding repository](https://github.com/ym-0x309/topolyx_blender_extension) or [extensions.blender.org](https://extensions.blender.org/add-ons/topolyx/) for details.
