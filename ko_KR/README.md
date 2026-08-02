@@ -13,8 +13,16 @@
 
 명세의 수정 기록과 향후 계획은 [CHANGELOG.md](/ko_KR/CHANGELOG.md)를 참고하십시오.
 
-## Topolyx Blender Extension
+## Topolyx 구현체
+
+### Topolyx Blender Extension
 
 Blender에서 제작한 메쉬를 Topolyx 포맷으로 export/import하는 익스텐션입니다.
 
 자세한 내용은 [해당 레포지토리](https://github.com/ym-0x309/topolyx_import_export) 및 [extensions.blender.org](https://extensions.blender.org/add-ons/topolyx/)를 참고하십시오.
+
+### topolyx-rs
+
+Topolyx 포맷(.tlyx)의 파일을 읽는 크레이트입니다.
+
+자세한 내용은 [해당 레포지토리](https://github.com/ym-0x309/topolyx-rs) 및 [crates.io](https://crates.io/crates/topolyx)를 참고하십시오.

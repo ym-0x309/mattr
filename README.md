@@ -12,8 +12,18 @@ See the [specification](/SPECIFICATION.md) for details.
 
 See [CHANGELOG.md](/CHANGELOG.md) for the specification's revision history and future plans.
 
-## Topolyx Blender Extension
+## Topolyx Implementation
 
-An extension for exporting/importing meshes created in Blender to/from the Topolyx format.
+### Topolyx Blender Extension
 
-See [the corresponding repository](https://github.com/ym-0x309/topolyx_blender_extension) or [extensions.blender.org](https://extensions.blender.org/add-ons/topolyx/) for details.
+This extension allows you to export and import meshes created in Blender to and from the Topolyx format.
+
+For more details, please refer to [the repository](https://github.com/ym-0x309/topolyx_import_export) and [extensions.blender.org](https://extensions.blender.org/add-ons/topolyx/).
+
+### topolyx-rs
+
+This is a crate for reading files in the Topolyx format (.tlyx).
+
+For more details, please refer to [the repository](https://github.com/ym-0x309/topolyx-rs) and [crates.io](https://crates.io/crates/topolyx).
+
+Translated with DeepL.com (free version)
